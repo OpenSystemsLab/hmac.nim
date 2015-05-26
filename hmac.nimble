@@ -1,8 +1,8 @@
 [Package]
 name          = "hmac"
 version       = "0.1.0"
-author        = "Anonymous"
-description   = "New Nimble project for Nim"
+author        = "Huy Doan"
+description   = "HMAC hashing in Nim"
 license       = "MIT"
 
 [Deps]
