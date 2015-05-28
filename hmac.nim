@@ -1,3 +1,14 @@
+#
+#          Nim's Unofficial Library
+#        (c) Copyright 2015 Huy Doan
+#
+#    See the file "LICENSE", included in this
+#    distribution, for details about the copyright.
+#
+
+## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
+
+
 from sha1 import SHA1Digest, compute
 from md5 import MD5Digest, toMD5
 
