@@ -9,73 +9,92 @@
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
 
-from sha1 import SHA1Digest, compute
-from md5 import MD5Digest, toMD5
+import securehash, md5, nimSHA2, strutils
 
-proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA1Digest =
-  var keyA, o_key_pad: seq[uint8] = @[]
+
+type
+  Sha1Digest = array[20, uint8]
+
+proc hash_sha1(s: string): SecureHash {.procvar.} =
+  secureHash(s)
+
+proc hash_sha256(s: string): SHA256Digest {.procvar.} =
+  computeSHA256(s)
+
+proc hash_md5(s: string): MD5Digest {.procvar.} =
+   toMD5(s)
+
+iterator items(s: SecureHash): uint8 =
+  for n in Sha1Digest(s):
+    yield n
+
+proc `%`*[T: SecureHash|SHA256Digest|MD5Digest](x: T): string =
+  when x is SecureHash:
+    toLower($x)
+  elif x is SHA256Digest:
+    toLower(toHex(x))
+  elif x is MD5Digest:
+    $x
+  else:
+    discard
+
+template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36): stmt =
+  var keyA: seq[uint8] = @[]
+  var o_key_pad = newString(block_size + digest_size)
   var i_key_pad = newString(block_size)
 
   if key.len > block_size:
-    for n in compute(key):
-      keyA.add(n)
+    for n in hash(key):
+        keyA.add(n.uint8)
   else:
     for n in key:
-      keyA.add(n.uint8)
+       keyA.add(n.uint8)
 
   while keyA.len < block_size:
     keyA.add(0x00)
 
   for i in 0..block_size-1:
-    o_key_pad.add uint8(keyA[i].ord xor opad)
+    o_key_pad[i] = char(keyA[i].ord xor opad)
     i_key_pad[i] = char(keyA[i].ord xor ipad)
+  var i = 0
+  for x in hash(i_key_pad & data):
+    o_key_pad[block_size + i] = char(x)
+    inc(i)
+  result = hash(o_key_pad)
 
-  for i in compute(i_key_pad & data):
-    o_key_pad.add(i)
-  result = compute(o_key_pad)
+proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SecureHash =
+   hmac_x(key, data, hash_sha1, 20, block_size, opad, ipad)
+
+proc hmac_sha256*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA256Digest =
+   hmac_x(key, data, hash_sha256, 32, block_size, opad, ipad)
 
 proc hmac_md5*(key, data: string): MD5Digest =
-  var keyA: seq[uint8] = @[]
-  var o_key_pad = newString(80)
-  var i_key_pad = newString(64)
-
-  if key.len > 64:
-    for n in toMD5(key):
-      keyA.add(n)
-  else:
-    for n in key:
-      keyA.add(n.uint8)
-
-  while keyA.len < 64:
-    keyA.add(0x00)
-
-  for i in 0..63:
-    o_key_pad[i] = char(keyA[i].ord xor 0x5c)
-    i_key_pad[i] = char(keyA[i].ord xor 0x36)
-
-  let inner_digest = toMD5(i_key_pad & data)
-  for i in 0..inner_digest.len-1:
-    o_key_pad[64+i] = char(inner_digest[i])
-  result = toMD5(o_key_pad);
+   hmac_x(key, data, hash_md5, 16)
 
 
 when isMainModule:
-  from sha1 import toHex
-  from md5 import `$`
 
-  var result = hmac_sha1("key", "The quick brown fox jumps over the lazy dog").toHex()
+  var result = %hmac_sha1("key", "The quick brown fox jumps over the lazy dog")
   echo result
   assert(result == "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9","Incorrect hash")
 
   let longKey = "oiJkCotyEAcqEtbHAxwR0sj7Fl4CAT2xdT2oYJep6Wzes2umipBUzocVSwp7nL5ns4xDrPIBEBHKwIr3LlQLZmCw1wStOMSke9SDvQ2Gayj5ZGzvZ1T1uVyN4DcGenYd"
-  result = hmac_sha1(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta.").toHex()
+  result = %hmac_sha1(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta.")
   echo result
   assert(result == "a0d87be75bb531af746ab7988e1e8058e7bc17f0","Incorrect hash")
 
-  result = $hmac_md5("Jefe", "what do ya want for nothing?")
+  result = %hmac_sha256("ubuntu", "Canonical to offer 5 years of support, but Snap packages mean latest features factor in.")
+  echo result
+  assert(result == "f53abed8001d0b7c8a64edc011854bded49e1ed55e5d5f5455b7b2ecf6506884", "Incorrect hash")
+
+  result = %hmac_sha256(longKey, "Nim (formerly known as \"Nimrod\") is a statically typed, imperative programming language that tries to give the programmer ultimate power without compromises on runtime efficiency. This means it focuses on compile-time mechanisms in all their various forms.")
+  echo result
+  assert(result == "8df227ae87aee5cad77c395eb4a589469421f4d23ced1a8e93270cd4c4fd9cbf", "Incorrect hash")
+
+  result = %hmac_md5("Jefe", "what do ya want for nothing?")
   echo result
   assert(result == "750c783e6ab0b503eaa86e310a5db738","Incorrect hash")
 
-  result = $hmac_md5(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta.")
+  result = %hmac_md5(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta.")
   echo result
   assert(result == "35acf8ac84d15ed02a4cd94331fc0aaa","Incorrect hash")
