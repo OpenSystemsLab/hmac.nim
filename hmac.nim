@@ -32,7 +32,7 @@ proc `%`*[T: SecureHash|SHA256Digest|MD5Digest](x: T): string =
   when x is SecureHash:
     toLower($x)
   elif x is SHA256Digest:
-    toLower(toHex(x))
+    toLower(nimSHA2.toHex(x))
   elif x is MD5Digest:
     $x
   else:
