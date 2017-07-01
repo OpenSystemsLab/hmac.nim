@@ -15,28 +15,29 @@ import securehash, md5, nimSHA2, strutils
 type
   Sha1Digest = array[20, uint8]
 
-proc hash_sha1(s: string): SecureHash {.procvar.} =
+proc hash_sha1*(s: string): SecureHash {.procvar.} =
   secureHash(s)
 
-proc hash_sha256(s: string): SHA256Digest {.procvar.} =
+proc hash_sha256*(s: string): SHA256Digest {.procvar.} =
   computeSHA256(s)
 
-proc hash_md5(s: string): MD5Digest {.procvar.} =
-   toMD5(s)
+proc hash_sha512*(s: string): SHA512Digest {.procvar.} =
+  computeSHA512(s)
 
+proc hash_md5*(s: string): MD5Digest {.procvar.} =
+   toMD5(s)
+  
 iterator items(s: SecureHash): uint8 =
   for n in Sha1Digest(s):
     yield n
 
-proc `%`*[T: SecureHash|SHA256Digest|MD5Digest](x: T): string =
+proc `%`*[T](x: T): string =
   when x is SecureHash:
     toLower($x)
-  elif x is SHA256Digest:
-    toLower(nimSHA2.toHex(x))
   elif x is MD5Digest:
     $x
   else:
-    discard
+    toLower(nimSHA2.toHex(x))
 
 template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36): stmt =
   var keyA: seq[uint8] = @[]
@@ -66,7 +67,10 @@ proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): S
    hmac_x(key, data, hash_sha1, 20, block_size, opad, ipad)
 
 proc hmac_sha256*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA256Digest =
-   hmac_x(key, data, hash_sha256, 32, block_size, opad, ipad)
+  hmac_x(key, data, hash_sha256, 32, block_size, opad, ipad)
+
+proc hmac_sha512*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA512Digest =
+  hmac_x(key, data, hash_sha512, 32, block_size, opad, ipad)
 
 proc hmac_md5*(key, data: string): MD5Digest =
    hmac_x(key, data, hash_md5, 16)
