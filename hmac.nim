@@ -69,8 +69,8 @@ proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): S
 proc hmac_sha256*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA256Digest =
   hmac_x(key, data, hash_sha256, 32, block_size, opad, ipad)
 
-proc hmac_sha512*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA512Digest =
-  hmac_x(key, data, hash_sha512, 32, block_size, opad, ipad)
+proc hmac_sha512*(key, data: string, block_size = 128, opad = 0x5c, ipad = 0x36): SHA512Digest =
+  hmac_x(key, data, hash_sha512, 64, block_size, opad, ipad)
 
 proc hmac_md5*(key, data: string): MD5Digest =
    hmac_x(key, data, hash_md5, 16)
@@ -102,3 +102,7 @@ when isMainModule:
   result = toHex(hmac_md5(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta."))
   echo result
   assert(result == "35acf8ac84d15ed02a4cd94331fc0aaa","Incorrect hash")
+  
+  result = toHex(hmac_sha512(longKey, "In cryptography, a keyed-hash message authentication code (HMAC) is a specific type of message authentication code (MAC) involving a cryptographic hash function and a secret cryptographic key. It may be used to simultaneously verify both the data integrity and the authentication of a message, as with any MAC. Any cryptographic hash function, such as MD5 or SHA-1, may be used in the calculation of an HMAC"))
+  echo result
+  assert(result == "028f744134acb0917e750632133d37dd1da6260be730721a7e6ec44784cd08da653cfb484f4d03805048fe1ae9d881167d8198dfaae5a363358fd39283f9afb7", "Incorrect hash")
