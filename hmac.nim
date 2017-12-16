@@ -9,14 +9,11 @@
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
 
-import securehash, md5, nimSHA2, strutils
+import sha1, md5, nimSHA2, strutils
 
 
-type
-  Sha1Digest = array[20, uint8]
-
-proc hash_sha1*(s: string): SecureHash {.procvar.} =
-  secureHash(s)
+proc hash_sha1*(s: string): Sha1Digest {.procvar.} =
+  sha1.compute(s)
 
 proc hash_sha256*(s: string): SHA256Digest {.procvar.} =
   computeSHA256(s)
@@ -26,13 +23,9 @@ proc hash_sha512*(s: string): SHA512Digest {.procvar.} =
 
 proc hash_md5*(s: string): MD5Digest {.procvar.} =
    toMD5(s)
-  
-iterator items(s: SecureHash): uint8 =
-  for n in Sha1Digest(s):
-    yield n
 
 proc toHex*[T](x: T): string {.inline.} =
-  when x is SecureHash:
+  when x is Sha1Digest:
     toLower($x)
   elif x is MD5Digest:
     $x
@@ -52,7 +45,7 @@ template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int
        keyA.add(n.uint8)
 
   while keyA.len < block_size:
-    keyA.add(0x00)
+    keyA.add(0x00'u8)
 
   for i in 0..block_size-1:
     o_key_pad[i] = char(keyA[i].ord xor opad)
@@ -63,7 +56,7 @@ template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int
     inc(i)
   result = hash(o_key_pad)
 
-proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SecureHash =
+proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): Sha1Digest =
    hmac_x(key, data, hash_sha1, 20, block_size, opad, ipad)
 
 proc hmac_sha256*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA256Digest =
@@ -102,7 +95,7 @@ when isMainModule:
   result = toHex(hmac_md5(longKey, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut nibh sit amet felis volutpat pellentesque eu at tellus. Etiam posuere justo eget mi porta porta."))
   echo result
   assert(result == "35acf8ac84d15ed02a4cd94331fc0aaa","Incorrect hash")
-  
+
   result = toHex(hmac_sha512(longKey, "In cryptography, a keyed-hash message authentication code (HMAC) is a specific type of message authentication code (MAC) involving a cryptographic hash function and a secret cryptographic key. It may be used to simultaneously verify both the data integrity and the authentication of a message, as with any MAC. Any cryptographic hash function, such as MD5 or SHA-1, may be used in the calculation of an HMAC"))
   echo result
   assert(result == "028f744134acb0917e750632133d37dd1da6260be730721a7e6ec44784cd08da653cfb484f4d03805048fe1ae9d881167d8198dfaae5a363358fd39283f9afb7", "Incorrect hash")
