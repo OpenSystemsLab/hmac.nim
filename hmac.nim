@@ -26,13 +26,13 @@ proc hash_md5*(s: string): MD5Digest {.procvar.} =
 
 proc toHex*[T](x: T): string {.inline.} =
   when x is Sha1Digest:
-    toLower($x)
+    toLowerAscii($x)
   elif x is MD5Digest:
     $x
   else:
-    toLower(nimSHA2.toHex(x))
+    toLowerAscii(nimSHA2.toHex(x))
 
-template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36): stmt =
+template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36): typed =
   var keyA: seq[uint8] = @[]
   var o_key_pad = newString(block_size + digest_size)
   var i_key_pad = newString(block_size)
