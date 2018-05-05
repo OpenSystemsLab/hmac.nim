@@ -8,9 +8,8 @@
 
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
-
-import sha1, md5, nimSHA2, strutils
-
+import md5, strutils
+import sha1, nimSHA2
 
 proc hash_sha1*(s: string): Sha1Digest {.procvar.} =
   sha1.compute(s)
