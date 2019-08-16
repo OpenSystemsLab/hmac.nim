@@ -8,12 +8,11 @@
 
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
-import md5, strutils
-import sha1
+import md5, strutils, std/sha1
 import nimSHA2 except toHex
 
 proc hash_sha1*(s: string): Sha1Digest {.procvar.} =
-  sha1.compute(s)
+  secureHash(s).Sha1Digest
 
 proc hash_sha256*(s: string): SHA256Digest {.procvar.} =
   computeSHA256(s)
