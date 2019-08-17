@@ -24,7 +24,9 @@ proc hash_md5*(s: string): MD5Digest {.procvar.} =
    toMD5(s)
 
 proc toHex*[T](x: T): string {.inline.} =
-  when x is Sha1Digest or x is MD5Digest:
+  when x is Sha1Digest:
+    result = toLowerAscii($SecureHash(x))
+  elif x is MD5Digest:
     result =  toLowerAscii($x)
   else:
     result = toLowerAscii(nimSHA2.toHex(x))
