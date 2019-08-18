@@ -8,11 +8,11 @@
 
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
-import md5, strutils, std/sha1
+import md5, strutils, sha1
 import nimSHA2 except toHex
 
 proc hash_sha1*(s: string): Sha1Digest {.procvar.} =
-  secureHash(s).Sha1Digest
+  sha1.compute(s)
 
 proc hash_sha256*(s: string): SHA256Digest {.procvar.} =
   computeSHA256(s)
@@ -32,7 +32,7 @@ proc toHex*[T](x: T): string {.inline.} =
     result = toLowerAscii(nimSHA2.toHex(x))
 
 
-template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36): typed =
+template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int, block_size = 64, opad = 0x5c, ipad = 0x36) =
   var keyA: seq[uint8] = @[]
   var o_key_pad = newString(block_size + digest_size)
   var i_key_pad = newString(block_size)
