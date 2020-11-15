@@ -11,17 +11,17 @@
 import md5, strutils, sha1
 import nimSHA2 except toHex
 
-proc hash_sha1*(s: string): Sha1Digest {.procvar.} =
-  sha1.compute(s)
+proc hash_sha1*(s: string): Sha1Digest {.procvar.} = sha1.compute(s)
 
-proc hash_sha256*(s: string): SHA256Digest {.procvar.} =
-  computeSHA256(s)
+proc hash_sha224*(s: string): SHA224Digest {.procvar.} = computeSHA224(s)
 
-proc hash_sha512*(s: string): SHA512Digest {.procvar.} =
-  computeSHA512(s)
+proc hash_sha256*(s: string): SHA256Digest {.procvar.} = computeSHA256(s)
 
-proc hash_md5*(s: string): MD5Digest {.procvar.} =
-   toMD5(s)
+proc hash_sha384*(s: string): SHA384Digest {.procvar.} = computeSHA384(s)
+
+proc hash_sha512*(s: string): SHA512Digest {.procvar.} = computeSHA512(s)
+
+proc hash_md5*(s: string): MD5Digest {.procvar.} = toMD5(s)
 
 proc toHex*[T](x: T): string {.inline.} =
   when x is Sha1Digest:
@@ -59,8 +59,14 @@ template hmac_x[T](key, data: string, hash: proc(s: string): T, digest_size: int
 proc hmac_sha1*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): Sha1Digest =
    hmac_x(key, data, hash_sha1, 20, block_size, opad, ipad)
 
+proc hmac_sha224*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): Sha224Digest =
+   hmac_x(key, data, hash_sha224, 32, block_size, opad, ipad)
+
 proc hmac_sha256*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA256Digest =
   hmac_x(key, data, hash_sha256, 32, block_size, opad, ipad)
+
+proc hmac_sha384*(key, data: string, block_size = 64, opad = 0x5c, ipad = 0x36): SHA384Digest =
+   hmac_x(key, data, hash_sha384, 64, block_size, opad, ipad)
 
 proc hmac_sha512*(key, data: string, block_size = 128, opad = 0x5c, ipad = 0x36): SHA512Digest =
   hmac_x(key, data, hash_sha512, 64, block_size, opad, ipad)
