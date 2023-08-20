@@ -8,14 +8,14 @@
 
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
-import md5, strutils, sha1
+import std/[sha1, md5, strutils]
 import nimSHA2 except toHex
 import nimcrypto
 
 type
   Keccak512Digest* = array[0..63, char]
 
-proc hash_sha1*(s: string): Sha1Digest {.procvar.} = sha1.compute(s)
+proc hash_sha1*(s: string): Sha1Digest {.procvar.} = sha1.secureHash(s).Sha1Digest
 
 proc hash_sha224*(s: string): SHA224Digest {.procvar.} = computeSHA224(s)
 
@@ -31,7 +31,7 @@ proc hash_md5*(s: string): MD5Digest {.procvar.} = toMD5(s)
 
 proc toHex*[T](x: T): string {.inline.} =
   when x is Sha1Digest:
-    result = toLowerAscii($x)
+    result = toLowerAscii($x.SecureHash)
   elif x is MD5Digest:
     result = toLowerAscii($x)
   else:
@@ -116,4 +116,3 @@ when isMainModule:
 
   result = toHex(hmac_keccak512(longKey, "In cryptography, a keyed-hash message authentication code (HMAC) is a specific type of message authentication code (MAC) involving a cryptographic hash function and a secret cryptographic key. It may be used to simultaneously verify both the data integrity and the authentication of a message, as with any MAC. Any cryptographic hash function, such as MD5 or SHA-1, may be used in the calculation of an HMAC"))
   echo result
-  

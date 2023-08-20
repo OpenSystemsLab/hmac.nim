@@ -1,6 +1,6 @@
-version       = "0.2.0"
+version       = "0.3.0"
 author        = "Huy Doan"
 description   = "HMAC hashing in Nim"
 license       = "MIT"
 
-requires "nim", "nimSHA2", "sha1", "nimcrypto >= 0.5.4"
+requires "nim >= 2.0.0", "nimSHA2", "nimcrypto >= 0.5.4"
