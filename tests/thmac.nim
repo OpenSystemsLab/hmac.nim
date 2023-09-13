@@ -1,4 +1,4 @@
-import unittest, strutils, sha1, hmac
+import unittest, strutils, hmac
 
 proc hexToString(s: string): string =
   var pair: string
