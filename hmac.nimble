@@ -1,4 +1,4 @@
-version       = "0.3.1"
+version       = "0.3.2"
 author        = "Huy Doan"
 description   = "HMAC hashing in Nim"
 license       = "MIT"
