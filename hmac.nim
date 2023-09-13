@@ -8,7 +8,8 @@
 
 ## This module implements HMAC-SHA1 and HMC-MD5 hashing methods
 
-import std/[sha1, md5, strutils]
+import std/strutils
+import checksums/[md5, sha1]
 import nimSHA2 except toHex
 import nimcrypto
 
